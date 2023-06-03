@@ -1,25 +1,28 @@
-import { useState } from "react";
-import { useRef } from "react";
+import React, { useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addItem } from "../store";
 
-function Sidebar() {
-  const [items, setItems] = useState([]);
-  const [input, setInput] = useState("");
+function Sidebar({ onAddItem, onItemClick }) {
+  const dispatch = useDispatch();
+  const items = useSelector((state) => state.items);
 
-  const inputRef = useRef(null);
+  const inputTitleRef = useRef(null);
+  const inputTextRef = useRef(null);
 
-  const addItem = () => {
-    if (input != "") {
-      setItems([...items, { id: items.length, value: input }]);
+  const addItemToList = () => {
+    const title = inputTitleRef.current.value;
+    const text = inputTextRef.current.value;
+    if (title !== "" && text !== "") {
+      const newItem = { title, text };
+      dispatch(addItem(newItem));
+      onAddItem(newItem); // Pass the new item to the parent component
+      clearInput();
     }
   };
 
-  const updateInput = (e) => {
-    setInput(e.target.value);
-  };
-
   const clearInput = () => {
-    setInput("");
-    inputRef.current.value = "";
+    inputTitleRef.current.value = "";
+    inputTextRef.current.value = "";
   };
 
   return (
@@ -27,26 +30,30 @@ function Sidebar() {
       <div className="h-full w-80 fixed top-0 left-0 bg-neutral overflow-x-hidden flex flex-col justify-top">
         <input
           type="text"
-          placeholder="Type here"
+          placeholder="Title"
           className="input input-bordered m-2"
-          onChange={updateInput}
-          ref={inputRef}
+          ref={inputTitleRef}
         />
-        <button
-          className="btn btn-success m-2"
-          onClick={() => {
-            addItem(); clearInput();
-          }}
-        >
-          New Note
+        <input
+          type="text"
+          placeholder="Text"
+          className="input input-bordered m-2"
+          ref={inputTextRef}
+        />
+        <button className="btn btn-success m-2" onClick={addItemToList}>
+          Create Note
         </button>
         <br />
         <br />
         <div>
           <ul>
-            {items.map((item) => (
-              <button className="btn btn-primary m-2 w-72" key={item.id}>
-                {item.value}
+            {items.map((item, index) => (
+              <button
+                className="btn btn-primary m-2 w-72"
+                key={index}
+                onClick={() => onItemClick(item.title)} // Update the onClick handler
+              >
+                {item.title}
               </button>
             ))}
           </ul>
